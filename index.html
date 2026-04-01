@@ -1,0 +1,753 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>منصة زاد المعرفة</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .exam-container {
+      background: linear-gradient(135deg, #0f172a 0%, #1a202c 100%);
+      min-height: 100%;
+    }
+    .question-card {
+      transition: all 0.3s ease;
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border-left: 4px solid #00d4ff;
+      border-top-right-radius: 12px;
+      border-bottom-right-radius: 12px;
+    }
+    .option-btn {
+      transition: all 0.2s ease;
+      background-color: #1e293b;
+      border: 2px solid #334155;
+      color: #e2e8f0;
+    }
+    .option-btn:hover {
+      transform: translateX(-5px);
+      border-color: #00d4ff;
+      background-color: #0f172a;
+    }
+    .option-btn.selected {
+      background-color: #00d4ff;
+      color: #0f172a;
+      border-color: #00d4ff;
+    }
+    .score-animation {
+      animation: scoreShow 0.6s ease-out;
+    }
+    @keyframes scoreShow {
+      0% {
+        opacity: 0;
+        transform: scale(0.5);
+      }
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body class="h-full bg-gray-100 m-0 p-0">
+  <div class="exam-container w-full h-full overflow-auto"><!-- قسم إدخال البيانات الشخصية -->
+   <div id="registration-section" class="min-h-full w-full p-4 md:p-8 flex items-center justify-center">
+    <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-2xl p-8 w-full max-w-md border border-cyan-400/20">
+     <div class="text-center mb-8"><i data-lucide="zap" class="w-16 h-16 mx-auto text-cyan-400 mb-4"></i>
+      <h1 class="text-4xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">⚡ منصة الامتحان</h1>
+      <p class="text-slate-300 mt-2">جهز نفسك للامتحان الشديد</p>
+     </div>
+     <form id="registration-form" class="space-y-5">
+      <div><label class="block text-cyan-300 font-semibold mb-3 text-lg">اسم الطالب</label> <input id="student-name" type="text" placeholder="أدخل اسمك الكامل" class="w-full px-4 py-3 bg-slate-700 border-2 border-cyan-500/40 rounded-lg focus:outline-none focus:border-cyan-400 text-white placeholder-slate-400 transition" required>
+      </div><button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-600 text-white py-3 rounded-lg font-bold hover:from-cyan-400 hover:to-blue-500 transition transform hover:scale-105 flex items-center justify-center gap-2 text-lg shadow-lg shadow-cyan-500/50"> <i data-lucide="zap-off" class="w-6 h-6"></i> ابدأ الآن </button>
+     </form>
+    </div>
+   </div><!-- قسم الامتحان -->
+   <div id="exam-section" class="hidden min-h-full w-full p-4 md:p-8">
+    <div class="max-w-2xl mx-auto"><!-- رأس الامتحان -->
+     <div class="bg-gradient-to-r from-slate-800 to-slate-900 rounded-xl shadow-lg p-6 mb-6 border border-cyan-400/20">
+      <div class="flex justify-between items-center mb-4">
+       <div>
+        <h2 class="text-2xl font-bold text-white">🔥 الامتحان الشديد</h2>
+        <p id="student-info" class="text-cyan-300 mt-1 text-lg font-semibold">الطالب: --</p>
+       </div>
+       <div class="text-center bg-slate-700/50 rounded-lg p-4 border border-cyan-500/40">
+        <div class="text-3xl font-bold text-cyan-400" id="progress">
+         0/31
+        </div>
+        <p class="text-sm text-slate-300 mt-1">تقدمك</p>
+       </div>
+      </div>
+      <div class="w-full bg-slate-700 rounded-full h-3 overflow-hidden">
+       <div id="progress-bar" class="bg-gradient-to-r from-cyan-500 to-blue-600 h-3 rounded-full transition-all duration-300 shadow-lg shadow-cyan-500/50" style="width: 0%"></div>
+      </div>
+     </div><!-- الأسئلة -->
+     <div id="questions-container" class="space-y-6 mb-8"><!-- الأسئلة سيتم إضافتها هنا من خلال JavaScript -->
+     </div><!-- زر الإرسال --> <button id="submit-btn" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white py-4 rounded-xl font-bold hover:from-green-400 hover:to-emerald-500 transition transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg shadow-green-500/50 mb-8 text-lg"> <i data-lucide="send" class="w-6 h-6"></i> أرسل الإجابات ✅ </button>
+    </div>
+   </div><!-- قسم النتائج -->
+   <div id="results-section" class="hidden min-h-full w-full p-4 md:p-8 flex items-center justify-center">
+    <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-2xl p-8 w-full max-w-md text-center score-animation border border-cyan-400/20">
+     <div class="mb-6"><i data-lucide="crown" class="w-24 h-24 mx-auto text-amber-400 mb-4 drop-shadow-lg"></i>
+      <h1 class="text-4xl font-bold text-white">🔥 انتهيت!</h1>
+      <p class="text-cyan-300 mt-2 text-lg font-semibold">تم إرسال إجاباتك</p>
+     </div>
+     <div class="bg-gradient-to-r from-cyan-500/20 to-blue-500/20 rounded-xl p-6 mb-6 border border-cyan-400/40">
+      <p class="text-slate-300 text-sm mb-2">درجتك النهائية</p>
+      <p id="final-score" class="text-6xl font-bold bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-2">0/0</p>
+      <p id="percentage" class="text-2xl text-cyan-300 font-bold">0%</p>
+     </div>
+     <div id="rating-section" class="mb-6 bg-slate-700/50 rounded-lg p-4 border border-slate-600">
+      <p id="rating-text" class="text-xl font-semibold text-white"></p>
+      <p id="rating-emoji" class="text-6xl mt-2"></p>
+     </div>
+     <div class="bg-blue-950/50 border-2 border-blue-500/40 rounded-lg p-4 mb-6 text-right">
+      <p class="text-slate-200 mb-2 font-semibold">✅ تم إرسال إجاباتك للمعلم عبر الواتساب</p>
+      <p class="text-xs text-slate-400">📱 سيتم تصحيحها قريباً</p>
+     </div>
+     <div class="space-y-3"><button id="restart-btn" class="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 rounded-lg font-bold hover:from-purple-500 hover:to-pink-500 transition transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"> <i data-lucide="refresh-cw" class="w-5 h-5"></i> حاول مرة أخرى </button> <button id="download-btn" class="w-full bg-gradient-to-r from-blue-600 to-cyan-600 text-white py-3 rounded-lg font-bold hover:from-blue-500 hover:to-cyan-500 transition transform hover:scale-105 flex items-center justify-center gap-2 shadow-lg"> <i data-lucide="download" class="w-5 h-5"></i> حمّل الإجابات </button>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+    // بيانات الأسئلة - 16 اختيار متعدد + 8 صح/غلط + 7 مقالي
+    const questions = [
+      // ===== الأسئلة الاختيار المتعدد (1-16) =====
+      {
+        id: 'q1',
+        text: 'الآية التي لم تشتمل على مثال (يائي):',
+        type: 'multiple',
+        options: [
+          { text: 'قال تعالى: ﴿الْيَوْمَ يَئِسَ الَّذِينَ كَفَرُوا مِن دِينِكُمْ﴾', value: '1' },
+          { text: 'قال تعالى: ﴿وَالَّذِينَ يَصِلُونَ مَا أَمَرَ اللَّهُ بِهِ أَن يُوصَلَ﴾', value: '2' },
+          { text: 'قال تعالى: ﴿وَنُيَسِّرُكَ لِلْيُسْرَى﴾', value: '3' },
+          { text: 'قال تعالى: ﴿وَلَقَدْ يَسَّرْنَا الْقُرْآنَ لِلذِّكْرِ﴾', value: '4' }
+        ],
+        correctAnswer: '2'
+      },
+      {
+        id: 'q2',
+        text: 'الآية المشتملة على أجوف (يائي):',
+        type: 'multiple',
+        options: [
+          { text: 'قال تعالى: ﴿فَجَاسُوا خِلَالَ الدِّيَارِ﴾', value: '1' },
+          { text: 'قال تعالى: ﴿وَخَابَ كُلُّ جَبَّارٍ عَنِيدٍ﴾', value: '2' },
+          { text: 'قال تعالى: ﴿أَفَطَالَ عَلَيْكُمُ الْعَهْدُ﴾', value: '3' },
+          { text: 'قال تعالى: ﴿خَالِدِينَ فِيهَا مَا دَامَتِ السَّمَاوَاتُ وَالْأَرْضُ﴾', value: '4' }
+        ],
+        correctAnswer: '3'
+      },
+      {
+        id: 'q3',
+        text: 'الآية التي لم تشتمل على فعل ناقص:',
+        type: 'multiple',
+        options: [
+          { text: 'قال تعالى: ﴿أَن رَّآهُ اسْتَغْنَى﴾', value: '1' },
+          { text: 'قال تعالى: ﴿وَالْأَرْضِ وَمَا طَحَاهَا﴾', value: '2' },
+          { text: 'قال تعالى: ﴿وَعَنَتِ الْوُجُوهُ لِلْحَيِّ الْقَيُّومِ﴾', value: '3' },
+          { text: 'قال تعالى: ﴿قُلْ هَذِهِ سَبِيلِي﴾', value: '4' }
+        ],
+        correctAnswer: '4'
+      },
+      {
+        id: 'q4',
+        text: 'الآية المشتملة على لفيف مفروق:',
+        type: 'multiple',
+        options: [
+          { text: 'قال تعالى: ﴿وَإِبْرَاهِيمَ الَّذِي وَفَّى﴾', value: '1' },
+          { text: 'قال تعالى: ﴿يَوْمَ نَطْوِي السَّمَاءَ كَطَيِّ السِّجِلِّ لِلْكُتُبِ﴾', value: '2' },
+          { text: 'قال تعالى: ﴿وَعَصَى آدَمُ رَبَّهُ فَغَوَى﴾', value: '3' },
+          { text: 'قال تعالى: ﴿يُغَاثُوا بِمَاءٍ كَالْمُهْلِ يَشْوِي الْوُجُوهَ﴾', value: '4' }
+        ],
+        correctAnswer: '2'
+      },
+      {
+        id: 'q5',
+        text: 'الآية المشتملة على لفيف مقرون:',
+        type: 'multiple',
+        options: [
+          { text: 'قال تعالى: ﴿وَتَعِيَهَا أُذُنٌ وَاعِيَةٌ﴾', value: '1' },
+          { text: 'قال تعالى: ﴿وَوَقَيْنَا عَذَابَ السَّمُومِ﴾', value: '2' },
+          { text: 'قال تعالى: ﴿وَمَن تَقِ السَّيِّئَاتِ يَوْمَئِذٍ فَقَدْ رَحِمْتَهُ﴾', value: '3' },
+          { text: 'قال تعالى: ﴿وَعَصَى آدَمُ رَبَّهُ فَغَوَى﴾', value: '4' }
+        ],
+        correctAnswer: '3'
+      },
+      {
+        id: 'q6',
+        text: 'الكلمات التي تنتمي إلى مجموعة واحدة من الفعل المعتل:',
+        type: 'multiple',
+        options: [
+          { text: '(يصف - يلوي - يقضي)', value: '1' },
+          { text: '(يقل - يصام - يسعى)', value: '2' },
+          { text: '(ينوي - يعي - يعد)', value: '3' },
+          { text: '(يخشى - يفنى - يقضي)', value: '4' }
+        ],
+        correctAnswer: '4'
+      },
+      {
+        id: 'q7',
+        text: 'الفعل الصحيح السالم من بين الأفعال التالية:',
+        type: 'multiple',
+        options: [
+          { text: 'وعى', value: '1' },
+          { text: 'قاس', value: '2' },
+          { text: 'ذكر', value: '3' },
+          { text: 'مرض', value: '4' }
+        ],
+        correctAnswer: '2'
+      },
+      {
+        id: 'q8',
+        text: 'الفعل الذي يعتبر مضعفاً مشدداً:',
+        type: 'multiple',
+        options: [
+          { text: 'كسر', value: '1' },
+          { text: 'مدّ', value: '2' },
+          { text: 'ذهب', value: '3' },
+          { text: 'سار', value: '4' }
+        ],
+        correctAnswer: '2'
+      },
+      {
+        id: 'q9',
+        text: 'أي من الكلمات التالية تحتوي على همزة وصل:',
+        type: 'multiple',
+        options: [
+          { text: 'أكل', value: '1' },
+          { text: 'ابن', value: '2' },
+          { text: 'أسد', value: '3' },
+          { text: 'أمر', value: '4' }
+        ],
+        correctAnswer: '2'
+      },
+      {
+        id: 'q10',
+        text: 'الكلمة التي فيها تنوين الفتح:',
+        type: 'multiple',
+        options: [
+          { text: 'قاضٍ', value: '1' },
+          { text: 'مسلمٌ', value: '2' },
+          { text: 'قاضياً', value: '3' },
+          { text: 'معلمٌ', value: '4' }
+        ],
+        correctAnswer: '3'
+      },
+      {
+        id: 'q11',
+        text: 'الجملة التي تحتوي على مضاف إليه:',
+        type: 'multiple',
+        options: [
+          { text: 'ذهب محمد إلى المدرسة', value: '1' },
+          { text: 'هذا كتاب الطالب', value: '2' },
+          { text: 'الطالب ذكي جداً', value: '3' },
+          { text: 'تعلم اللغة العربية مهم', value: '4' }
+        ],
+        correctAnswer: '2'
+      },
+      {
+        id: 'q12',
+        text: 'الكلمة التي تعتبر نعتاً في الجملة: "قرأت كتاباً جميلاً"',
+        type: 'multiple',
+        options: [
+          { text: 'قرأت', value: '1' },
+          { text: 'كتاباً', value: '2' },
+          { text: 'جميلاً', value: '3' },
+          { text: 'الجملة', value: '4' }
+        ],
+        correctAnswer: '3'
+      },
+      {
+        id: 'q13',
+        text: 'الفاعل في الجملة "ألقى المعلم الدرس" هو:',
+        type: 'multiple',
+        options: [
+          { text: 'الدرس', value: '1' },
+          { text: 'المعلم', value: '2' },
+          { text: 'ألقى', value: '3' },
+          { text: 'المدرسة', value: '4' }
+        ],
+        correctAnswer: '2'
+      },
+      {
+        id: 'q14',
+        text: 'الحرف الذي يبدأ به تاء التأنيث:',
+        type: 'multiple',
+        options: [
+          { text: 'حرف صحيح', value: '1' },
+          { text: 'حرف لين', value: '2' },
+          { text: 'حرف متحرك', value: '3' },
+          { text: 'حرف ساكن', value: '4' }
+        ],
+        correctAnswer: '2'
+      },
+      {
+        id: 'q15',
+        text: 'الجملة التي تحتوي على فعل ماضٍ ناقص:',
+        type: 'multiple',
+        options: [
+          { text: 'أكل الطالب الطعام', value: '1' },
+          { text: 'كان الجو جميلاً', value: '2' },
+          { text: 'يكتب الدرس', value: '3' },
+          { text: 'اقرأ القرآن', value: '4' }
+        ],
+        correctAnswer: '2'
+      },
+      {
+        id: 'q16',
+        text: 'ما نوع الاسم في "رياض الأطفال":',
+        type: 'multiple',
+        options: [
+          { text: 'اسم علم', value: '1' },
+          { text: 'اسم جنس', value: '2' },
+          { text: 'اسم معرف بالإضافة', value: '3' },
+          { text: 'اسم نعت', value: '4' }
+        ],
+        correctAnswer: '3'
+      },
+
+      // ===== أسئلة صح/غلط (17-24) =====
+      {
+        id: 'q17',
+        text: 'الفعل الأجوف هو الفعل الذي وسطه حرف ساكن',
+        type: 'truefalse',
+        correctAnswer: 'false'
+      },
+      {
+        id: 'q18',
+        text: 'الهمزة في كلمة "ابن" تسمى همزة قطع',
+        type: 'truefalse',
+        correctAnswer: 'false'
+      },
+      {
+        id: 'q19',
+        text: 'تنوين الضم والكسر والفتح جميعها أنواع من التنوين',
+        type: 'truefalse',
+        correctAnswer: 'true'
+      },
+      {
+        id: 'q20',
+        text: 'المضاف إليه يأتي بعد المضاف مباشرة',
+        type: 'truefalse',
+        correctAnswer: 'true'
+      },
+      {
+        id: 'q21',
+        text: 'الفعل المضعف المفروق هو الذي يكون آخره مضعفاً',
+        type: 'truefalse',
+        correctAnswer: 'false'
+      },
+      {
+        id: 'q22',
+        text: 'النعت يوافق المنعوت في التعريف والتنكير والإعراب',
+        type: 'truefalse',
+        correctAnswer: 'true'
+      },
+      {
+        id: 'q23',
+        text: 'الأفعال الناقصة مثل: كان، ليس، ظن - تحتاج فقط فاعلاً واحداً',
+        type: 'truefalse',
+        correctAnswer: 'false'
+      },
+      {
+        id: 'q24',
+        text: 'اللفيف المقرون يجمع بين العلتين في أول الكلمة',
+        type: 'truefalse',
+        correctAnswer: 'false'
+      },
+
+      // ===== أسئلة مقالية (25-31) =====
+      {
+        id: 'q25',
+        text: 'اشرح الفرق بين الفعل المثال والفعل الأجوف مع إعطاء مثالين',
+        type: 'essay'
+      },
+      {
+        id: 'q26',
+        text: 'ما هي أنواع المضاف؟ وأعط مثالاً على كل نوع',
+        type: 'essay'
+      },
+      {
+        id: 'q27',
+        text: 'اشرح قاعدة وضع النعت بعد المنعوت واذكر الحالات التي قد يتقدم فيها',
+        type: 'essay'
+      },
+      {
+        id: 'q28',
+        text: 'كيف نميز بين همزة القطع وهمزة الوصل في الكلمات؟',
+        type: 'essay'
+      },
+      {
+        id: 'q29',
+        text: 'اذكر معنى اللفيف المقرون والمفروق مع إعطاء أمثلة',
+        type: 'essay'
+      },
+      {
+        id: 'q30',
+        text: 'اشرح دور الأفعال الناقصة وكيفية الفرق بينها وبين الأفعال الناقصة',
+        type: 'essay'
+      },
+      {
+        id: 'q31',
+        text: 'ما هو المضعف الممكن والمضعف الملزوم؟ مع الأمثلة',
+        type: 'essay'
+      }
+    ];
+
+    let currentStudent = {};
+    let studentAnswers = {};
+    let allData = [];
+
+    // تهيئة Data SDK
+    const dataHandler = {
+      onDataChanged(data) {
+        allData = data;
+      }
+    };
+
+    // التحكم بالامتحان
+    function startExam() {
+      document.getElementById('registration-section').classList.add('hidden');
+      document.getElementById('exam-section').classList.remove('hidden');
+      renderQuestions();
+      lucide.createIcons();
+    }
+
+    function renderQuestions() {
+      const container = document.getElementById('questions-container');
+      container.innerHTML = '';
+      
+      questions.forEach((question, index) => {
+        let questionHTML = `
+          <div class="question-card bg-white rounded-lg shadow-md p-6">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">السؤال ${index + 1}</h3>
+            <p class="text-gray-700 font-semibold mb-4">${question.text}</p>
+        `;
+
+        if (question.type === 'multiple') {
+          // أسئلة الاختيار المتعدد
+          questionHTML += `
+            <div class="space-y-3">
+              ${question.options.map(option => `
+                <button class="option-btn w-full text-right px-4 py-3 border-2 border-gray-300 rounded-lg hover:border-purple-600 hover:bg-gray-50 transition"
+                  data-question="${question.id}" data-value="${option.value}">
+                  <span class="font-semibold">${option.value}.</span> ${option.text}
+                </button>
+              `).join('')}
+            </div>
+          `;
+        } else if (question.type === 'truefalse') {
+          // أسئلة صح/غلط
+          questionHTML += `
+            <div class="flex gap-4">
+              <button class="option-btn flex-1 px-4 py-3 border-2 border-green-300 rounded-lg bg-green-50 hover:border-green-600 hover:bg-green-100 transition font-semibold"
+                data-question="${question.id}" data-value="true">
+                ✅ صحيح
+              </button>
+              <button class="option-btn flex-1 px-4 py-3 border-2 border-red-300 rounded-lg bg-red-50 hover:border-red-600 hover:bg-red-100 transition font-semibold"
+                data-question="${question.id}" data-value="false">
+                ❌ غلط
+              </button>
+            </div>
+          `;
+        } else if (question.type === 'essay') {
+          // أسئلة مقالية
+          questionHTML += `
+            <textarea id="${question.id}" class="w-full px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-purple-600 min-h-[120px] resize-none"
+              placeholder="اكتب إجابتك هنا..." dir="rtl"></textarea>
+          `;
+        }
+
+        questionHTML += `</div>`;
+        container.innerHTML += questionHTML;
+      });
+
+      // إضافة مستمعي الأحداث
+      document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.addEventListener('click', selectOption);
+      });
+
+      // إضافة مستمعي الأحداث للأسئلة المقالية
+      document.querySelectorAll('textarea').forEach(textarea => {
+        textarea.addEventListener('input', saveEssayAnswer);
+      });
+
+      lucide.createIcons();
+    }
+
+    function selectOption(e) {
+      const questionId = e.currentTarget.dataset.question;
+      const value = e.currentTarget.dataset.value;
+      
+      // إزالة التحديد السابق
+      document.querySelectorAll(`[data-question="${questionId}"]`).forEach(btn => {
+        btn.classList.remove('selected', 'bg-purple-600', 'text-white', 'border-purple-600', 'bg-green-600', 'bg-red-600');
+      });
+      
+      // إضافة التحديد الجديد
+      e.currentTarget.classList.add('selected');
+      if (e.currentTarget.textContent.includes('صحيح')) {
+        e.currentTarget.classList.add('bg-green-600', 'text-white', 'border-green-600');
+      } else if (e.currentTarget.textContent.includes('غلط')) {
+        e.currentTarget.classList.add('bg-red-600', 'text-white', 'border-red-600');
+      } else {
+        e.currentTarget.classList.add('bg-purple-600', 'text-white', 'border-purple-600');
+      }
+      
+      studentAnswers[questionId] = value;
+      updateProgress();
+    }
+
+    function saveEssayAnswer(e) {
+      const textareaId = e.target.id;
+      studentAnswers[textareaId] = e.target.value;
+      updateProgress();
+    }
+
+    function updateProgress() {
+      const answered = Object.keys(studentAnswers).length;
+      document.getElementById('progress').textContent = `${answered}/16`;
+      document.getElementById('progress-bar').style.width = `${(answered / 16) * 100}%`;
+    }
+
+    function calculateScore() {
+      let score = 0;
+      
+      questions.forEach(q => {
+        if (q.type === 'essay') {
+          // الأسئلة المقالية لا تُحسب آلياً، تُترك للمعلم
+          if (studentAnswers[q.id] && studentAnswers[q.id].trim().length > 0) {
+            // يمكن حساب نقطة على الإجابة إذا كانت موجودة
+            score += 1; // كل إجابة مقالية = نقطة واحدة
+          }
+        } else {
+          // الأسئلة الموضوعية تُحسب آلياً
+          if (studentAnswers[q.id] === q.correctAnswer) {
+            score++;
+          }
+        }
+      });
+      
+      return score;
+    }
+
+    function showNotification(message) {
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+      notification.textContent = message;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => {
+        notification.remove();
+      }, 3000);
+    }
+
+    function submitExam() {
+      if (Object.keys(studentAnswers).length < 31) {
+        showNotification('يرجى الإجابة على جميع الأسئلة');
+        return;
+      }
+
+      const score = calculateScore();
+      const totalScore = 31; // 16 + 8 + 7
+      const percentage = (score / totalScore) * 100;
+      
+      // حفظ البيانات في Data SDK
+      const recordData = {
+        student_name: currentStudent.name,
+        student_phone: currentStudent.phone,
+        q1_answer: studentAnswers.q1 || '',
+        q2_answer: studentAnswers.q2 || '',
+        q3_answer: studentAnswers.q3 || '',
+        q4_answer: studentAnswers.q4 || '',
+        q5_answer: studentAnswers.q5 || '',
+        q6_answer: studentAnswers.q6 || '',
+        q7_answer: studentAnswers.q7 || '',
+        q8_answer: studentAnswers.q8 || '',
+        q9_answer: studentAnswers.q9 || '',
+        q10_answer: studentAnswers.q10 || '',
+        q11_answer: studentAnswers.q11 || '',
+        q12_answer: studentAnswers.q12 || '',
+        q13_answer: studentAnswers.q13 || '',
+        q14_answer: studentAnswers.q14 || '',
+        q15_answer: studentAnswers.q15 || '',
+        q16_answer: studentAnswers.q16 || '',
+        q17_answer: studentAnswers.q17 || '',
+        q18_answer: studentAnswers.q18 || '',
+        q19_answer: studentAnswers.q19 || '',
+        q20_answer: studentAnswers.q20 || '',
+        q21_answer: studentAnswers.q21 || '',
+        q22_answer: studentAnswers.q22 || '',
+        q23_answer: studentAnswers.q23 || '',
+        q24_answer: studentAnswers.q24 || '',
+        q25_answer: studentAnswers.q25 || '',
+        q26_answer: studentAnswers.q26 || '',
+        q27_answer: studentAnswers.q27 || '',
+        q28_answer: studentAnswers.q28 || '',
+        q29_answer: studentAnswers.q29 || '',
+        q30_answer: studentAnswers.q30 || '',
+        q31_answer: studentAnswers.q31 || '',
+        score: score,
+        total_questions: 31,
+        submitted_at: new Date().toISOString()
+      };
+
+      window.dataSdk.create(recordData).then(result => {
+        if (result.isOk) {
+          // إرسال للمعلم عبر الواتساب
+          sendToTeacher(score, percentage, totalScore);
+          
+          // عرض النتائج
+          showResults(score, percentage, totalScore);
+        }
+      });
+    }
+
+    function sendToTeacher(score, percentage, totalScore) {
+      let message = `
+*📋 تقرير امتحان الطالب*
+━━━━━━━━━━━━━━━━━━━
+*الاسم:* ${currentStudent.name}
+*التاريخ:* ${new Date().toLocaleString('ar-EG')}
+
+━━━━━━━━━━━━━━━━━━━
+*الإجابات:*
+
+🔵 *الأسئلة الاختيار المتعدد (1-16):*
+`;
+
+      for (let i = 1; i <= 16; i++) {
+        const q = questions[i - 1];
+        const answer = studentAnswers[`q${i}`];
+        const isCorrect = answer === q.correctAnswer ? '✅' : '❌';
+        message += `\nس${i}: ${isCorrect} (الإجابة: ${answer})`;
+      }
+
+      message += `\n\n🟡 *أسئلة صح/غلط (17-24):*\n`;
+      for (let i = 17; i <= 24; i++) {
+        const q = questions[i - 1];
+        const answer = studentAnswers[`q${i}`] === 'true' ? 'صحيح' : 'غلط';
+        const isCorrect = studentAnswers[`q${i}`] === q.correctAnswer ? '✅' : '❌';
+        message += `\nس${i}: ${isCorrect} (الإجابة: ${answer})`;
+      }
+
+      message += `\n\n🟠 *الأسئلة المقالية (25-31):*\n`;
+      for (let i = 25; i <= 31; i++) {
+        const answer = studentAnswers[`q${i}`] ? studentAnswers[`q${i}`].substring(0, 50) + '...' : 'لم تتم الإجابة';
+        message += `\nس${i}:\n${answer}\n`;
+      }
+
+      message += `
+━━━━━━━━━━━━━━━━━━━
+*📊 النتيجة النهائية:*
+*الدرجة:* ${score}/${totalScore}
+*النسبة المئوية:* ${percentage.toFixed(2)}%
+      `.trim();
+
+      const encodedMessage = encodeURIComponent(message);
+      const whatsappURL = `https://wa.me/+201515474939?text=${encodedMessage}`;
+      
+      window.open(whatsappURL, '_blank');
+    }
+
+    function showResults(score, percentage, totalScore) {
+      document.getElementById('exam-section').classList.add('hidden');
+      document.getElementById('results-section').classList.remove('hidden');
+      
+      document.getElementById('final-score').textContent = `${score}/${totalScore}`;
+      document.getElementById('percentage').textContent = `${percentage.toFixed(2)}%`;
+      
+      // تقييم الأداء
+      let rating = '';
+      let emoji = '';
+      if (percentage >= 90) {
+        rating = '🌟 ممتاز جداً! أداء رائع';
+        emoji = '🎉';
+      } else if (percentage >= 75) {
+        rating = '👏 جيد جداً! استمر هكذا';
+        emoji = '😊';
+      } else if (percentage >= 60) {
+        rating = '📚 جيد! يمكنك الأفضل';
+        emoji = '💪';
+      } else if (percentage >= 40) {
+        rating = '⚠️ متوسط - احتاج مراجعة';
+        emoji = '🤔';
+      } else {
+        rating = '❌ ضعيف - يحتاج اهتمام أكثر';
+        emoji = '📖';
+      }
+      
+      document.getElementById('rating-text').textContent = rating;
+      document.getElementById('rating-emoji').textContent = emoji;
+      
+      lucide.createIcons();
+    }
+
+    function downloadAnswers() {
+      const score = calculateScore();
+      let answersText = '===== الأسئلة الاختيار المتعدد =====\n';
+      
+      for (let i = 1; i <= 16; i++) {
+        const q = questions[i - 1];
+        const studentAnswer = studentAnswers[`q${i}`];
+        const isCorrect = studentAnswer === q.correctAnswer ? 'صحيح ✅' : 'خطأ ❌';
+        answersText += `السؤال ${i}: ${isCorrect} - الإجابة: ${studentAnswer}\n`;
+      }
+
+      answersText += '\n===== أسئلة صح/غلط =====\n';
+      for (let i = 17; i <= 24; i++) {
+        const q = questions[i - 1];
+        const studentAnswer = studentAnswers[`q${i}`] === 'true' ? 'صحيح' : 'غلط';
+        const isCorrect = studentAnswers[`q${i}`] === q.correctAnswer ? 'صحيح ✅' : 'خطأ ❌';
+        answersText += `السؤال ${i}: ${isCorrect} - الإجابة: ${studentAnswer}\n`;
+      }
+
+      answersText += '\n===== الأسئلة المقالية =====\n';
+      for (let i = 25; i <= 31; i++) {
+        const studentAnswer = studentAnswers[`q${i}`] || 'لم تتم الإجابة';
+        answersText += `السؤال ${i}:\n${studentAnswer}\n\n`;
+      }
+
+      const fullText = `
+تقرير الامتحان
+الطالب: ${currentStudent.name}
+التاريخ: ${new Date().toLocaleString('ar-EG')}
+الدرجة: ${score}/31
+
+${answersText}
+      `;
+
+      const element = document.createElement('a');
+      element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(fullText));
+      element.setAttribute('download', `امتحان_${currentStudent.name}.txt`);
+      element.click();
+    }
+
+    // أحداث النماذج
+    document.getElementById('registration-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      currentStudent.name = document.getElementById('student-name').value;
+      currentStudent.phone = 'لم يتم الإفصاح';
+      document.getElementById('student-info').textContent = `الطالب: ${currentStudent.name}`;
+      startExam();
+    });
+
+    document.getElementById('submit-btn').addEventListener('click', submitExam);
+    document.getElementById('restart-btn').addEventListener('click', () => location.reload());
+    document.getElementById('download-btn').addEventListener('click', downloadAnswers);
+
+    // تهيئة SDK
+    (async () => {
+      await window.dataSdk.init(dataHandler);
+      lucide.createIcons();
+    })();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9e537c6cf09891f7',t:'MTc3NTAwMzQzNS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
